@@ -13,6 +13,8 @@ class PostController extends Controller
         // ottengo i post dal model Post
         $posts = new Post;
 
+        
+
         // richiamo il singolo post richiesto
         $singolo = $posts->getPost($id_post);
         

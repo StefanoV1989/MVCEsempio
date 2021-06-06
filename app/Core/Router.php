@@ -57,7 +57,7 @@ class Router extends Model {
             {
                 // è il metodo
                 $this->method = $url[1];
-
+                unset($url[1]);
                 // i parametri successivi sono da passare al metodo resettando gli indici
                 $this->params = $url ? array_values($url) : [];
             }
@@ -67,9 +67,10 @@ class Router extends Model {
                 // se il metodo non esiste, mostro un errore
                 $this->method = 'throwMethodError';
                 $this->params = [$url[1]];
+                unset($url[1]);
             }
 
-            unset($url[1]);
+            
         }
 
         $methodName = $this->method;
