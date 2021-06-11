@@ -2,81 +2,123 @@
 
 namespace App\Core;
 
+use App\Controller\ErrorController;
 
 class Router extends Model {
 
-    // dati predefiniti per la home
-    protected $namespace = 'App\Controller\\';
-    protected $controller = 'HomeController';
-    protected $errorController = 'ErrorController';
-    protected $method = 'index';
-    protected $params = [];
+    private static $trovato = false;
 
-    public function __construct()
+    public static function get($pattern, $controller, $middleware = [])
     {
-        // gestisco i dati nell'url
-        $url = $this->parseUrl();
+        if(count($_POST) == 0)
+        {
+            $url = $_GET['url'] ?? '/';
+            $url = filter_var($url, FILTER_SANITIZE_URL);
+
+            if(self::parseUrl($url, $pattern, $controller, $middleware)) self::$trovato = true;
+
+            
+        }
     }
 
-    private function parseUrl()
+    public static function post($pattern, $controller, $middleware = [])
     {
-        $controllerName = $this->namespace . $this->controller;
-
-        // se ho dei parametri, li divido per / dopo aver sanitizzato la stringa
-        $url = isset($_GET['url']) ? explode('/', filter_var(rtrim($_GET['url'], '/'), FILTER_SANITIZE_URL)) : [];
-
-        if(isset($url[0]))
+        if(count($_POST) > 0)
         {
-            // il controller deve essere chiamato <nome> + Controller
-            $this->controller = ucfirst($url[0]) . 'Controller';
             
+            $url = $_GET['url'] ?? '/';
+            $url = filter_var($url, FILTER_SANITIZE_URL);
 
-            // se non esiste la classe nel namespace dei controller, chiamo il controller errori
-            if(!class_exists($this->namespace . $this->controller))
-            {
-                $this->controller = $this->errorController;
-                $this->method = 'throwClassError';
-                $this->params = [$url[0]];
-            }
-
-            // cancello l'indice già utilizzato
-            unset($url[0]);
+            if(self::parseUrl($url, $pattern, $controller, $middleware)) self::$trovato = true;
         }
-
-        // ottengo un nome intero fatto da namespace e controller
-        // del tipo App\Controller\NomeController
-        $controllerName = $this->namespace . $this->controller;
-
-        // richiamo la classe appena verificata
-        $controller = new $controllerName;
-
-        if(isset($url[1]))
-        {
-            // se esiste un secondo parametro
-            if(method_exists($controller, $url[1]))
-            {
-                // è il metodo
-                $this->method = $url[1];
-                unset($url[1]);
-                // i parametri successivi sono da passare al metodo resettando gli indici
-                $this->params = $url ? array_values($url) : [];
-            }
-            else
-            {
-                $controllerName = $this->namespace . $this->errorController;
-                // se il metodo non esiste, mostro un errore
-                $this->method = 'throwMethodError';
-                $this->params = [$url[1]];
-                unset($url[1]);
-            }
-
-            
-        }
-
-        $methodName = $this->method;
         
-        // chiamo il metodo dalla classe, e passo i parametri come params separati
-        $controllerName::$methodName(...$this->params);
+    }
+
+    public static function patch($pattern, $controller, $middleware = [])
+    {
+        if(count($_POST) > 0 && isset($_POST['method']) && strtoupper($_POST['method']) == 'PATCH')
+        {
+            $url = $_GET['url'] ?? '/';
+            $url = filter_var($url, FILTER_SANITIZE_URL);
+
+            if(self::parseUrl($url, $pattern, $controller, $middleware)) self::$trovato = true;
+        }
+        
+    }
+
+    public static function delete($pattern, $controller, $middleware = [])
+    {
+        if(count($_POST) > 0 && isset($_POST['method']) && strtoupper($_POST['method']) == 'DELETE')
+        {
+            $url = $_GET['url'] ?? '/';
+            $url = filter_var($url, FILTER_SANITIZE_URL);
+
+            if(self::parseUrl($url, $pattern, $controller, $middleware)) self::$trovato = true;
+        }
+        
+    }
+
+    public static function error()
+    {
+        if(!self::$trovato) ErrorController::throwPageError('test');
+    }
+
+    private static function processMiddleware($middleware)
+    {
+        if(count($middleware) > 0)
+            return ($middleware[0]::{$middleware[1]}());
+        else
+            return true;
+    }
+
+    private static function parseUrl($url, $pattern, $controller, $middleware)
+    {
+        $found = false;
+
+        preg_match('#{([\w\d]+)}#i', $pattern, $params);
+        unset($params[0]);
+        $params = array_values($params);
+
+        $realPattern = preg_replace('({[\w\d]+})', '(.+)', $pattern);
+        
+        if(preg_match('#^'.$realPattern.'$#i', $url, $matches))
+        {
+            if(self::processMiddleware($middleware))
+            {
+                if(count($matches) > 1)
+                {
+                    unset($matches[0]);
+                    $matches = array_values($matches);
+                    
+                    
+                    foreach($matches as $contatore => $match)
+                    {
+                        $parametri[$params[$contatore]] = $match;
+                    }
+                    
+                    $controller[0]::{$controller[1]}(...$parametri);
+
+                    $found = true;
+                }
+                else
+                {
+                    $controller[0]::{$controller[1]}();
+
+                    $found = true;
+                }
+
+                
+            }
+            
+        }
+
+        return $found;
+    }
+
+    public static function redirect($where)
+    {
+        header("Location: $where");
+        exit();
     }
 
 }

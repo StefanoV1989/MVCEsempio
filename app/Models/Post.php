@@ -14,7 +14,7 @@ class Post extends Model
         
         $s = $this->db->query("SELECT * FROM posts WHERE id = '$id_post'");
 
-        return $s->fetchAll();
+        return $s->fetchAll()[0];
     }
 
     // ottengo gli ultimi X post
@@ -25,5 +25,43 @@ class Post extends Model
         return $s->fetchAll();
     }
 
-    
+    public function getAll()
+    {
+        $s = $this->db->query("SELECT * FROM posts ORDER BY id DESC");
+
+        return $s->fetchAll();
+    }
+
+    public function save($id, $titolo, $testo)
+    {
+        $stm = $this->db->prepare("UPDATE posts SET titolo = :titolo, testo = :testo WHERE id = :id");
+
+        $stm->bindParam(':id', $id);
+        $stm->bindParam(':titolo', $titolo);
+        $stm->bindParam(':testo', $testo);
+
+        return $stm->execute();
+        
+    }
+
+    public function create($titolo, $testo)
+    {
+        $stm = $this->db->prepare("INSERT INTO posts (titolo, testo ) VALUES (:titolo, :testo)");
+
+        $stm->bindParam(':titolo', $titolo);
+        $stm->bindParam(':testo', $testo);
+
+        return $stm->execute();
+        
+    }
+
+    public function delete($id)
+    {
+        $stm = $this->db->prepare("DELETE FROM posts WHERE id = :id");
+
+        $stm->bindParam(':id', $id);
+
+        return $stm->execute();
+        
+    }
 }
