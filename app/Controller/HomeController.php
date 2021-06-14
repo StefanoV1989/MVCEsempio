@@ -16,6 +16,6 @@ class HomeController extends Controller
         $ultimiPost = $posts->last(20);
 
         // chiamo la view 'home' nella cartella views/layouts/ e passo i post come dati
-        parent::view('home', $ultimiPost);
+        parent::view($ultimiPost);
     }
 }

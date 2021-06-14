@@ -4,37 +4,13 @@ use App\Core\Model;
 
 class Auth extends Model
 {
-    public function isAuth():bool
+    public function isAuth($user, $pass):bool
     {
-        return isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] != 0;
-    }
-
-    public function login($user, $pass)
-    {
+        $pass = sha1(sha1($pass));
 
         $login_data = $this->db->query("SELECT id FROM utenti WHERE user = '$user' AND pass = '$pass'");
-
-        if($login_data->rowCount() > 0)
-        {
-            $dati = $login_data->fetch(\PDO::FETCH_OBJ);
-
-            $_SESSION['user_id'] = $dati->id;
-
-            return true;
-        }
-        else
-        {
-            return false;
-            
-        }
+        
+        return ($login_data->rowCount() > 0);
     }
-
-    public function logout()
-    {
-        unset($_SESSION['user_id']);
-        session_destroy();
-        return true;
-    }
-
     
 }

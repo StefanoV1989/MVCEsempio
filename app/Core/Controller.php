@@ -4,14 +4,12 @@ namespace App\Core;
 
 class Controller {
 
-    public static function view($view, $data = null)
+    public static function view($data)
     {
-        $methodPatch = '<input type="hidden" name="method" value="PATCH" />';
-        $methodDelete = '<input type="hidden" name="method" value="DELETE" />';
+        header("Access-Control-Allow-Origin: *");
+        header("Content-Type: application/json; charset=UTF-8");
 
-        // includo la view in base al nome richiesto
-        // $data sarà accessibili in automatico
-        require_once('../views/layouts/' . $view . '.php');
+        echo json_encode($data);
     }
 
 }

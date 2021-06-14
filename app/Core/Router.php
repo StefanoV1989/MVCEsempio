@@ -3,6 +3,7 @@
 namespace App\Core;
 
 use App\Controller\ErrorController;
+use App\Models\Request;
 
 class Router extends Model {
 
@@ -10,9 +11,12 @@ class Router extends Model {
 
     public static function get($pattern, $controller, $middleware = [])
     {
-        if(count($_POST) == 0)
+        $richiesta = Request::getData();
+
+        if($richiesta->method == 'GET')
         {
-            $url = $_GET['url'] ?? '/';
+            
+            $url = $richiesta->querystring->url ?? '/';
             $url = filter_var($url, FILTER_SANITIZE_URL);
 
             if(self::parseUrl($url, $pattern, $controller, $middleware)) self::$trovato = true;
@@ -23,10 +27,11 @@ class Router extends Model {
 
     public static function post($pattern, $controller, $middleware = [])
     {
-        if(count($_POST) > 0)
+        $richiesta = Request::getData();
+
+        if($richiesta->method == 'POST')
         {
-            
-            $url = $_GET['url'] ?? '/';
+            $url = $richiesta->querystring->url ?? '/';
             $url = filter_var($url, FILTER_SANITIZE_URL);
 
             if(self::parseUrl($url, $pattern, $controller, $middleware)) self::$trovato = true;
@@ -36,9 +41,11 @@ class Router extends Model {
 
     public static function patch($pattern, $controller, $middleware = [])
     {
-        if(count($_POST) > 0 && isset($_POST['method']) && strtoupper($_POST['method']) == 'PATCH')
+        $richiesta = Request::getData();
+
+        if($richiesta->method == 'PATCH')
         {
-            $url = $_GET['url'] ?? '/';
+            $url = $richiesta->querystring->url ?? '/';
             $url = filter_var($url, FILTER_SANITIZE_URL);
 
             if(self::parseUrl($url, $pattern, $controller, $middleware)) self::$trovato = true;
@@ -48,9 +55,11 @@ class Router extends Model {
 
     public static function delete($pattern, $controller, $middleware = [])
     {
-        if(count($_POST) > 0 && isset($_POST['method']) && strtoupper($_POST['method']) == 'DELETE')
+        $richiesta = Request::getData();
+
+        if($richiesta->method == 'DELETE')
         {
-            $url = $_GET['url'] ?? '/';
+            $url = $richiesta->querystring->url ?? '/';
             $url = filter_var($url, FILTER_SANITIZE_URL);
 
             if(self::parseUrl($url, $pattern, $controller, $middleware)) self::$trovato = true;
@@ -113,12 +122,6 @@ class Router extends Model {
         }
 
         return $found;
-    }
-
-    public static function redirect($where)
-    {
-        header("Location: $where");
-        exit();
     }
 
 }

@@ -17,7 +17,7 @@ class PostController extends Controller
         $singolo = $posts->getPost($id_post);
         
         // chiamo la view 'home' nella cartella views/layouts/ e passo i post come dati
-        parent::view('posts', $singolo);
+        parent::view($singolo);
     }
 
 }
