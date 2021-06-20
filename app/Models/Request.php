@@ -18,7 +18,7 @@ class Request {
 
     public static function getData()
     {
-        $metodo = strtoupper($_SERVER['REQUEST_METHOD']);
+        $metodo = isset($_SERVER['REQUEST_METHOD']) ? strtoupper($_SERVER['REQUEST_METHOD']) : 'GET';
 
         $url = (object)$_GET;
 

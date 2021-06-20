@@ -1,6 +1,4 @@
 <?php
-session_start();
-
 // dati login e autoload generale
 require_once('../config/env.php');
 require_once('../config/database.php');
